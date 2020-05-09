@@ -1,5 +1,6 @@
 use rand::Rng;
 
+#[derive(Clone, Copy)]
 pub struct Board {
     board: [[u8; 9]; 9],
 }
@@ -12,10 +13,11 @@ impl Board {
     pub fn print_board(&self) {
         for i in 0..(self.board.len()) {
             for j in 0..(self.board[i].len()) {
-                print!("{} ", self.board[i][j]);
+                print!("{}", self.board[i][j]);
             }
             println!();
         }
+        println!();
     }
 
     pub fn is_filled(&self) -> bool {
@@ -36,17 +38,17 @@ impl Board {
             // println!("row: {}, column: {}", row, column);
             if self.board[row][column] == 0 {
                 let numbers = shuffled_list();
-                for number in numbers.iter() {
+                for n in 0..numbers.len() {
+                    let number = numbers[n];
                     let is_valid_number = Board::is_valid_filler(self, number, row, column);
                     if is_valid_number {
-                        self.board[row][column] = number.clone();
+                        self.board[row][column] = number;
                         if Board::is_filled(self) {
                             return true;
                         } else {
                             if Board::fill_grid(self) {
                                 return true;
-                            }
-                            else {
+                            } else {
                                 self.board[row][column] = 0;
                             }
                         }
@@ -61,31 +63,91 @@ impl Board {
         false
     }
 
-   pub fn is_valid_filler(&self, number: &u8, row: usize, column: usize) -> bool {
+    fn count_solutions(board: &mut Self, count: &mut u32) -> bool {
+        // println!("################################################");
+        // board.print_board();
+        // println!("COUNT: {}", count);
+        // println!("################################################");
+        for i in 0..81 {
+            let row = i / 9;
+            let column = i % 9;
+            if board.board[row][column] == 0 {
+                for number in 1..10 {
+                    let is_valid_number = board.is_valid_filler(number, row, column);
+                    if is_valid_number {
+                        board.board[row][column] = number;
+                        // println!("ROW: {}, COLUMN: {}", row, column);
+                        if board.is_filled() {
+                            *count = *count + 1;
+                            break;
+                        } else if Board::count_solutions(board, count) {
+                            return true;
+                        }
+                        break;
+                    }
+                }
+                //board.board[row][column] = 0;
+            }
+        }
+        if board.is_filled() {
+            return true;
+        }
+        false
+    }
+
+    pub fn generate_problem(&mut self, attempts: u32) {
+        let mut remaining_attempts = attempts;
+        let mut rng = rand::thread_rng();
+        self.fill_grid();
+        // self.print_board();
+        // println!("**************************************");
+        while remaining_attempts > 0 {
+            let mut row = rng.gen_range(0, 9);
+            let mut column = rng.gen_range(0, 9);
+            while self.board[row][column] == 0 {
+                row = rng.gen_range(0, 9);
+                column = rng.gen_range(0, 9);
+            }
+            let backup = self.board[row][column];
+            self.board[row][column] = 0;
+            let mut cloned_board = self.clone();
+            let mut count = 0;
+            Board::count_solutions(&mut cloned_board, &mut count);
+            if count != 1 {
+                self.board[row][column] = backup;
+                remaining_attempts = remaining_attempts-1;
+            }
+        }
+    }
+
+    pub fn is_valid_filler(&self, number: u8, row: usize, column: usize) -> bool {
         let mut is_present_row = false;
         let mut is_present_col = false;
         let mut is_present_block = false;
-        println!("{:?}", row);
-        for r in self.board[row].iter() {
-            println!("****{}****{}****", number, r);
+        for i in 0..9 {
+            if i == column {
+                continue;
+            }
+            let r = self.board[row][i];
             if r == number {
                 is_present_row = true;
                 break;
             }
         }
         if is_present_row {
-            println!("ROW");
             return false;
         }
         for i in 0..9 {
+            if i == row {
+                continue;
+            }
             let c = self.board[i][column];
-            if c == *number {
+            if c == number {
                 is_present_col = true;
                 break;
             }
         }
         if is_present_col {
-            println!("COLUMN");
             return false;
         }
         let b_i = row / 3;
@@ -94,15 +156,17 @@ impl Board {
             for j in 0..3 {
                 let x = (b_i * 3) + i;
                 let y = (b_j * 3) + j;
+                if x == row && y == column {
+                    continue;
+                }
                 let b = self.board[x][y];
-                if b == *number {
+                if b == number {
                     is_present_block = true;
                     break;
                 }
             }
         }
         if is_present_block {
-            println!("BLOCK");
             return false;
         }
         true
@@ -139,11 +203,17 @@ fn shuffled_list() -> [u8; 9] {
 fn check_valid_board() {
     let mut board = Board::new();
     board.fill_grid();
-    board.print_board();
+    // board.print_board();
     for i in 0..board.board.len() {
         for j in 0..board.board[i].len() {
             let number = board.board[i][j];
-            assert!(board.is_valid_filler(&number, i, j), "number: {}, row: {}, column: {}", number, i, j);
+            assert!(
+                board.is_valid_filler(number, i, j),
+                "number: {}, row: {}, column: {}",
+                number,
+                i,
+                j
+            );
         }
     }
 }
