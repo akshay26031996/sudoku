@@ -10,14 +10,19 @@ impl Board {
         Self { board: [[0; 9]; 9] }
     }
 
-    pub fn print_board(&self) {
+    pub fn print_board(&self) -> String {
+        let mut res = String::from("");
         for i in 0..(self.board.len()) {
             for j in 0..(self.board[i].len()) {
-                print!("{}", self.board[i][j]);
+                // print!("{}", self.board[i][j]);
+                res.push_str(format!("{}", self.board[i][j]).as_str());
             }
-            println!();
+            // println!();
+            res.push_str("\n");
         }
-        println!();
+        // println!();
+        // res.push_str("\n");
+        res
     }
 
     pub fn is_filled(&self) -> bool {
@@ -63,7 +68,7 @@ impl Board {
         false
     }
 
-    fn count_solutions(board: &mut Self, count: &mut u32) -> bool {
+    pub fn count_solutions(board: &mut Self, count: &mut u32) -> bool {
         // println!("################################################");
         // board.print_board();
         // println!("COUNT: {}", count);
@@ -115,7 +120,7 @@ impl Board {
             Board::count_solutions(&mut cloned_board, &mut count);
             if count != 1 {
                 self.board[row][column] = backup;
-                remaining_attempts = remaining_attempts-1;
+                remaining_attempts = remaining_attempts - 1;
             }
         }
     }
