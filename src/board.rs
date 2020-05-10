@@ -70,32 +70,37 @@ impl Board {
 
     pub fn count_solutions(board: &mut Self, count: &mut u32) -> bool {
         // println!("################################################");
-        // board.print_board();
+        // println!("{}", board.print_board().as_str());
         // println!("COUNT: {}", count);
         // println!("################################################");
+        if board.is_filled() {
+            return true;
+        }
+        let mut row = 10;
+        let mut column = 10;
         for i in 0..81 {
-            let row = i / 9;
-            let column = i % 9;
+            row = i / 9;
+            column = i % 9;
             if board.board[row][column] == 0 {
                 for number in 1..10 {
                     let is_valid_number = board.is_valid_filler(number, row, column);
                     if is_valid_number {
                         board.board[row][column] = number;
-                        // println!("ROW: {}, COLUMN: {}", row, column);
                         if board.is_filled() {
                             *count = *count + 1;
                             break;
+                            // return true;
                         } else if Board::count_solutions(board, count) {
                             return true;
                         }
-                        break;
                     }
                 }
-                //board.board[row][column] = 0;
+                // board.board[row][column] = 0;
+                break;
             }
         }
-        if board.is_filled() {
-            return true;
+        if row!=10 && column!=10 {
+            board.board[row][column] = 0;
         }
         false
     }

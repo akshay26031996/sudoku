@@ -17,9 +17,12 @@ fn main() {
         let mut count = 0;
         let mut cloned_board = board.clone();
         board::Board::count_solutions(&mut cloned_board, &mut count);
-        println!("Count: {}", count);
+        // println!("Count: {}", count);
         board.fill_grid();
         write!(&mut output_writer, "{}\n", board.print_board().as_str()).unwrap();
         // println!("{}", board.print_board().as_str());
     }
+    // let mut board = board::Board::new();
+    // board.generate_problem(5);
+    // println!("{}", board.print_board().as_str());
 }
