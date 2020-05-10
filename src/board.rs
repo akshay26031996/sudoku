@@ -1,30 +1,44 @@
 use rand::Rng;
 
+/// Struct `Board` is the sudoku board of size 9x9
 #[derive(Clone, Copy)]
 pub struct Board {
     board: [[u8; 9]; 9],
 }
 
 impl Board {
+    /// Constructs a new `Board`
+    ///
+    /// # Examples
+    /// ```
+    /// mod board;
+    ///
+    /// let mut board = board::Board::new();
+    /// ```
     pub fn new() -> Self {
         Self { board: [[0; 9]; 9] }
     }
-
+    
+    /// Returns a string of 9 rows and 9 columns
+    /// represening the board. 0 represents an empty
+    /// cell.
+    /// # Examples
+    /// ```
+    /// println!("{}", board.print_board().as_str());
+    /// write!(&mut input_writer, "{}\n", board.print_board().as_str()).unwrap();
+    /// ```
     pub fn print_board(&self) -> String {
         let mut res = String::from("");
         for i in 0..(self.board.len()) {
             for j in 0..(self.board[i].len()) {
-                // print!("{}", self.board[i][j]);
                 res.push_str(format!("{}", self.board[i][j]).as_str());
             }
-            // println!();
             res.push_str("\n");
         }
-        // println!();
-        // res.push_str("\n");
         res
     }
-
+    /// This method checks if the sudoku board is filled
+    /// or not.
     pub fn is_filled(&self) -> bool {
         for i in 0..(self.board.len()) {
             for j in 0..(self.board.len()) {
@@ -35,12 +49,17 @@ impl Board {
         }
         true
     }
-
+    /// This method fills the sudoku grid with the **random**
+    /// solution.
+    /// # Examples
+    /// ```
+    /// let mut board = board::Board::new();
+    /// board.fill_grid();
+    /// ```
     pub fn fill_grid(&mut self) -> bool {
         for i in 0..81 {
             let row = i / 9;
             let column = i % 9;
-            // println!("row: {}, column: {}", row, column);
             if self.board[row][column] == 0 {
                 let numbers = shuffled_list();
                 for n in 0..numbers.len() {
@@ -67,12 +86,18 @@ impl Board {
         }
         false
     }
-
-    pub fn count_solutions(board: &mut Self, count: &mut u32) -> bool {
-        // println!("################################################");
-        // println!("{}", board.print_board().as_str());
-        // println!("COUNT: {}", count);
-        // println!("################################################");
+    /// This method loops over all the possible soltions of a given
+    /// sudoku board and counts the solution.
+    /// # Examples
+    /// ```
+    /// let mut cloned_board = self.clone();
+    /// let mut count = 0;
+    /// Board::count_solutions(&mut cloned_board, &mut count);
+    /// ```
+    fn count_solutions(board: &mut Self, count: &mut u32) -> bool {
+        if *count > 1u32 {
+            return true;
+        }
         if board.is_filled() {
             return true;
         }
@@ -89,13 +114,11 @@ impl Board {
                         if board.is_filled() {
                             *count = *count + 1;
                             break;
-                            // return true;
                         } else if Board::count_solutions(board, count) {
                             return true;
                         }
                     }
                 }
-                // board.board[row][column] = 0;
                 break;
             }
         }
@@ -104,13 +127,18 @@ impl Board {
         }
         false
     }
-
+    /// This method generates a random problem. This method takes
+    /// input as number of attempts. Higher the number of attempts
+    /// more difficult the problem generated would be.
+    /// # Examples
+    /// ```
+    /// let mut board = board::Board::new();
+    /// board.generate_problem(5);
+    /// ```
     pub fn generate_problem(&mut self, attempts: u32) {
         let mut remaining_attempts = attempts;
         let mut rng = rand::thread_rng();
         self.fill_grid();
-        // self.print_board();
-        // println!("**************************************");
         while remaining_attempts > 0 {
             let mut row = rng.gen_range(0, 9);
             let mut column = rng.gen_range(0, 9);
@@ -129,7 +157,11 @@ impl Board {
             }
         }
     }
-
+    /// Give the board, row and column and the input number
+    /// this method checks if the input number is valid.
+    /// Valid number would be such that it is not repeated in
+    /// row, column and block. For more details please refere
+    /// Sudoku rules.
     pub fn is_valid_filler(&self, number: u8, row: usize, column: usize) -> bool {
         let mut is_present_row = false;
         let mut is_present_col = false;
